@@ -4,7 +4,7 @@ extern crate syn;
 
 use proc_macro2::TokenStream;
 use synstructure::Structure;
-use syn::{Fields, Meta, NestedMeta, parse_str};
+use syn::{Fields, Meta, NestedMeta, Lit, Path, parse_str};
 
 decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
@@ -20,7 +20,7 @@ fn custom_debug_derive(s: Structure) -> TokenStream {
         };
 
         let variant_body = variant.bindings().iter().map(|b| {
-            let mut custom_format = None;
+            let mut format = None;
 
             b.ast().attrs.iter()
             .filter(|attr| attr.path == debug_attr)
@@ -31,26 +31,49 @@ fn custom_debug_derive(s: Structure) -> TokenStream {
             })
             .for_each(|meta| match meta {
                 NestedMeta::Meta(Meta::NameValue(nv)) => {
-                    match &*nv.ident.to_string() {
-                        "format" => custom_format = Some(nv.lit),
+                    let value = nv.lit;
+                    format = Some(match &*nv.ident.to_string() {
+                        "format" => quote! { &format_args!(#value, #b) },
+                        "with" => match value {
+                            Lit::Str(fun) => {
+                                let fun = fun.parse::<Path>().unwrap();
+                                quote! {
+                                    &{
+                                        struct DebugWith<'a, T: 'a> {
+                                            data: &'a T,
+                                            fmt: fn(&T, &mut ::std::fmt::Formatter) -> ::std::fmt::Result,
+                                        }
+
+                                        impl<'a, T: 'a> ::std::fmt::Debug for DebugWith<'a, T> {
+                                            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                                                (self.fmt)(self.data, f)
+                                            }
+                                        }
+
+                                        DebugWith {
+                                            data: #b,
+                                            fmt: #fun,
+                                        }
+                                    }
+                                }
+                            },
+                            _ => panic!("Invalid 'with' value"),
+                        },
                         name => panic!("Unknown key '{}'", name),
-                    }
+                    })
                 },
                 _ => panic!("Invalid debug attribute"),
             });
 
-            let value = match custom_format {
-                None => quote! { #b },
-                Some(format) => quote! { &format_args!(#format, #b) },
-            };
+            let format = format.unwrap_or_else(|| quote! { #b });
 
             if let Some(ref name) = b.ast().ident.as_ref().map(<_>::to_string) {
                 quote! {
-                    s.field(#name, #value);
+                    s.field(#name, #format);
                 }
             } else {
                 quote! {
-                    s.field(#value);
+                    s.field(#format);
                 }
             }
         });
@@ -135,6 +158,56 @@ fn test_format() {
         no_build
     }
 }
+
+#[test]
+fn test_with() {
+    test_derive! {
+        custom_debug_derive {
+            struct Point {
+                #[debug(with = "my_fmt")]
+                x: f32,
+                y: f32,
+            }
+        }
+
+        expands to {
+            #[allow(non_upper_case_globals)]
+            const _DERIVE_std_fmt_Debug_FOR_Point: () = {
+                impl ::std::fmt::Debug for Point {
+                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                        match self {
+                            Point { x: ref __binding_0, y: ref __binding_1, } => {
+                                let mut s = f.debug_struct("Point");
+                                s.field("x", &{
+                                    struct DebugWith<'a, T: 'a> {
+                                        data: &'a T,
+                                        fmt: fn(&T, &mut ::std::fmt::Formatter) -> ::std::fmt::Result,
+                                    }
+
+                                    impl<'a, T: 'a> ::std::fmt::Debug for DebugWith<'a, T> {
+                                        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                                            (self.fmt)(self.data, f)
+                                        }
+                                    }
+
+                                    DebugWith {
+                                        data: __binding_0,
+                                        fmt: my_fmt,
+                                    }
+                                });
+                                s.field("y", __binding_1);
+                                s.finish()
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        no_build
+    }
+}
+
 
 #[test]
 fn test_enum() {
