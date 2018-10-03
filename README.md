@@ -4,6 +4,8 @@ Derive `Debug` with a custom format per field.
 
 # Usage
 
+Here is a showcase of all possible field attributes:
+
 ```rust
     #[macro_use] extern crate custom_debug_derive;
     use std::fmt;
@@ -11,9 +13,11 @@ Derive `Debug` with a custom format per field.
     #[derive(CustomDebug)]
     struct Foo {
         #[debug(format = "{} things")]
-        n: i32,
+        x: f32,
+        #[debug(skip)]
+        y: f32,
         #[debug(with = "hex_fmt")]
-        m: i32,
+        z: f32,
     }
 
     fn hex_fmt<T: fmt::Debug>(n: &T, f: &mut fmt::Formatter) -> fmt::Result {
@@ -21,11 +25,11 @@ Derive `Debug` with a custom format per field.
     }
 ```
 
-Would print something like
+The resulting debug output would look something like this:
 
 ```
 Foo {
-    n: 42 things,
-    m: 0xAB
+    x: 42 things,
+    z: 0xAB
 }
 ```
