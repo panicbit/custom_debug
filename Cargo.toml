@@ -3,6 +3,7 @@ name = "custom_debug_derive"
 version = "0.1.0"
 authors = ["panicbit <panicbit.dev@gmail.com>"]
 description = "Derive Debug with a custom format per field"
+license = "MIT/Apache-2.0"
 
 [lib]
 proc-macro = true
