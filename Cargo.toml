@@ -1,0 +1,12 @@
+[package]
+name = "custom_debug_derive"
+version = "0.1.0"
+authors = ["panicbit <panicbit.dev@gmail.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+synstructure = "0.10.0"
+proc-macro2 = "0.4.19"
+syn = "0.15.7"
