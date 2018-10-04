@@ -3,7 +3,7 @@ name = "custom_debug_derive"
 version = "0.1.3"
 authors = ["panicbit <panicbit.dev@gmail.com>"]
 description = "Derive Debug with a custom format per field"
-license = "MIT/Apache-2.0"
+license = "Apache-2.0 OR MIT"
 repository = "https://github.com/panicbit/custom_debug_derive"
 readme = "README.md"
 
