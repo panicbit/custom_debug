@@ -9,11 +9,11 @@ use syn::{Fields, Meta, NestedMeta, Lit, Path, Ident, parse_str};
 decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
 fn custom_debug_derive(s: Structure) -> TokenStream {
-    let name = s.ast().ident.to_string();
     let debug_attr = parse_str::<Path>("debug").unwrap();
     let skip_ident = parse_str::<Ident>("skip").unwrap();
 
     let variants = s.each_variant(|variant| {
+        let name = variant.ast().ident.to_string();
         let debug_helper = match variant.ast().fields {
             | Fields::Named(_)
             | Fields::Unit => quote! { debug_struct },
@@ -264,13 +264,13 @@ fn test_enum() {
                     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                         match self {
                             Foo::Bar(ref __binding_0, ref __binding_1,) => {
-                                let mut s = f.debug_tuple("Foo");
+                                let mut s = f.debug_tuple("Bar");
                                 s.field(&format_args!("{}i32", __binding_0));
                                 s.field(__binding_1);
                                 s.finish()
                             }
                             Foo::Quux { x: ref __binding_0, y: ref __binding_1, } => {
-                                let mut s = f.debug_struct("Foo");
+                                let mut s = f.debug_struct("Quux");
                                 s.field("x", __binding_0);
                                 s.field("y", __binding_1);
                                 s.finish()
