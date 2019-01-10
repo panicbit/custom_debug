@@ -4,14 +4,37 @@ extern crate syn;
 extern crate synstructure;
 
 use proc_macro2::TokenStream;
-use synstructure::Structure;
-use syn::{Fields, Meta, NestedMeta, Lit, Path, Ident, parse_str};
+use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path};
+use synstructure::{BindingInfo, Structure};
 
 decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
-fn custom_debug_derive(s: Structure) -> TokenStream {
-    let debug_attr = parse_str::<Path>("debug").unwrap();
-    let skip_ident = parse_str::<Ident>("skip").unwrap();
+fn custom_debug_derive(mut s: Structure) -> TokenStream {
+    fn get_metas<'a>(b: &BindingInfo<'a>) -> impl Iterator<Item = NestedMeta> + 'a {
+        let debug_attr = parse_str::<Path>("debug").unwrap();
+
+        b.ast()
+            .attrs
+            .iter()
+            .filter(move |attr| attr.path == debug_attr)
+            .flat_map(|attr| attr.interpret_meta())
+            .flat_map(|meta| match meta {
+                Meta::List(list) => list.nested,
+                _ => panic!("Invalid debug attribute"),
+            })
+    };
+
+    let skip_ident: Ident = parse_str("skip").unwrap();
+    s.filter(|b| {
+        for meta in get_metas(b) {
+            if let NestedMeta::Meta(Meta::Word(ref ident)) = meta {
+                if ident == &skip_ident {
+                    return false;
+                }
+            }
+        }
+        true
+    });
 
     let variants = s.each_variant(|variant| {
         let name = variant.ast().ident.to_string();
@@ -24,17 +47,8 @@ fn custom_debug_derive(s: Structure) -> TokenStream {
         let variant_body = variant.bindings().iter().map(|b| {
             let mut format = None;
 
-            let metas = b.ast().attrs.iter()
-            .filter(|attr| attr.path == debug_attr)
-            .flat_map(|attr| attr.interpret_meta())
-            .flat_map(|meta| match meta {
-                Meta::List(list) => list.nested,
-                _ => panic!("Invalid debug attribute"),
-            });
-
-            for meta in metas {
+            for meta in get_metas(b) {
                 match meta {
-                    NestedMeta::Meta(Meta::Word(ref ident)) if ident == &skip_ident => return quote! {},
                     NestedMeta::Meta(Meta::NameValue(nv)) => {
                         let value = nv.lit;
                         format = Some(match &*nv.ident.to_string() {
@@ -232,7 +246,7 @@ fn test_skip() {
                 impl ::std::fmt::Debug for Point {
                     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                         match self {
-                            Point { x: ref __binding_0, y: ref __binding_1, z: ref __binding_2, } => {
+                            Point { x: ref __binding_0, z: ref __binding_2, .. } => {
                                 let mut s = f.debug_struct("Point");
                                 s.field("x", __binding_0);
                                 s.field("z", __binding_2);
@@ -274,6 +288,58 @@ fn test_enum() {
                                 let mut s = f.debug_struct("Quux");
                                 s.field("x", __binding_0);
                                 s.field("y", __binding_1);
+                                s.finish()
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        no_build
+    }
+}
+
+#[test]
+fn test_bounds_on_skipped() {
+    #![allow(dead_code)]
+
+    use std::{fmt::*, marker::PhantomData};
+
+    struct NoDebug;
+    struct TemplatedType<T> {
+        _phantom: PhantomData<T>,
+    };
+    impl<T> Debug for TemplatedType<T>
+    where
+        T: Debug,
+    {
+        fn fmt(&self, f: &mut Formatter) -> Result {
+            write!(f, "TemplatedType")
+        }
+    }
+
+    test_derive! {
+        custom_debug_derive {
+            struct WantDebug<T> {
+                foo: TemplatedType<T>,
+                #[debug(skip)]
+                bar: TemplatedType<NoDebug>,
+            }
+        }
+        expands to {
+            #[allow(non_upper_case_globals)]
+            const _DERIVE_std_fmt_Debug_FOR_WantDebug: () = {
+                impl<T> ::std::fmt::Debug for WantDebug<T>
+                    where
+                        TemplatedType<T>: ::std::fmt::Debug,
+                        T: ::std::fmt::Debug
+                {
+                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                        match self {
+                            WantDebug { foo: ref __binding_0, .. } => {
+                                let mut s = f.debug_struct("WantDebug");
+                                s.field("foo", __binding_0);
                                 s.finish()
                             }
                         }
