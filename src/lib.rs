@@ -1,6 +1,7 @@
 extern crate proc_macro2;
 extern crate syn;
-#[macro_use] extern crate synstructure;
+#[macro_use]
+extern crate synstructure;
 
 use proc_macro2::TokenStream;
 use synstructure::Structure;
