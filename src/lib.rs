@@ -5,7 +5,7 @@ extern crate synstructure;
 
 use proc_macro2::TokenStream;
 use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path};
-use synstructure::{BindingInfo, Structure};
+use synstructure::{AddBounds, BindingInfo, Structure};
 
 decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
@@ -23,6 +23,8 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                 _ => panic!("Invalid debug attribute"),
             })
     };
+
+    s.add_bounds(AddBounds::Fields);
 
     let skip_ident: Ident = parse_str("skip").unwrap();
     s.filter(|b| {
@@ -324,9 +326,54 @@ fn test_bounds_on_skipped() {
             struct WantDebug<T> {
                 foo: TemplatedType<T>,
                 #[debug(skip)]
-                bar: TemplatedType<NoDebug>,
+                bar: Debug,
             }
         }
+
+        expands to {
+            #[allow(non_upper_case_globals)]
+            const _DERIVE_std_fmt_Debug_FOR_WantDebug: () = {
+                impl<T> ::std::fmt::Debug for WantDebug<T>
+                    where
+                        TemplatedType<T>: ::std::fmt::Debug
+                {
+                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                        match self {
+                            WantDebug { foo: ref __binding_0, .. } => {
+                                let mut s = f.debug_struct("WantDebug");
+                                s.field("foo", __binding_0);
+                                s.finish()
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        no_build
+    }
+}
+
+#[test]
+fn test_bounds_on_fields_only() {
+    #![allow(dead_code)]
+
+    use std::marker::PhantomData;
+
+    struct NoDebug;
+    struct TemplatedType<T> {
+        _phantom: PhantomData<T>,
+    };
+
+    test_derive! {
+        custom_debug_derive {
+            struct WantDebug<T> {
+                foo: TemplatedType<T>,
+                bar: TemplatedType<NoDebug>,
+                needs_debug: T,
+            }
+        }
+
         expands to {
             #[allow(non_upper_case_globals)]
             const _DERIVE_std_fmt_Debug_FOR_WantDebug: () = {
@@ -337,9 +384,11 @@ fn test_bounds_on_skipped() {
                 {
                     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                         match self {
-                            WantDebug { foo: ref __binding_0, .. } => {
+                            WantDebug { foo: ref __binding_0, bar: ref __binding_1, needs_debug: ref __binding_2, } => {
                                 let mut s = f.debug_struct("WantDebug");
                                 s.field("foo", __binding_0);
+                                s.field("bar", __binding_1);
+                                s.field("needs_debug", __binding_2);
                                 s.finish()
                             }
                         }
