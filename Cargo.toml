@@ -11,6 +11,6 @@ readme = "README.md"
 proc-macro = true
 
 [dependencies]
-synstructure = "0.10.0"
-proc-macro2 = "0.4.19"
-syn = "0.15.7"
+synstructure = "0.10.1"
+proc-macro2 = "0.4.30"
+syn = "0.15.34"
