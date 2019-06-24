@@ -6,6 +6,7 @@ description = "Derive Debug with a custom format per field"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/panicbit/custom_debug_derive"
 readme = "README.md"
+edition = "2018"
 
 [lib]
 proc-macro = true
