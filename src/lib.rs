@@ -62,11 +62,11 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                                         &{
                                             struct DebugWith<'a, T: 'a> {
                                                 data: &'a T,
-                                                fmt: fn(&T, &mut ::std::fmt::Formatter) -> ::std::fmt::Result,
+                                                fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
                                             }
 
-                                            impl<'a, T: 'a> ::std::fmt::Debug for DebugWith<'a, T> {
-                                                fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                                            impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
+                                                fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                                                     (self.fmt)(self.data, f)
                                                 }
                                             }
@@ -108,8 +108,8 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
     });
 
     s.gen_impl(quote! {
-        gen impl ::std::fmt::Debug for @Self {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        gen impl ::core::fmt::Debug for @Self {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     #variants
                 }
@@ -130,9 +130,9 @@ fn test_default_struct() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_Point: () = {
-                impl ::std::fmt::Debug for Point {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+                impl ::core::fmt::Debug for Point {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Point { x: ref __binding_0, y: ref __binding_1, } => {
                                 let mut s = f.debug_struct("Point");
@@ -161,9 +161,9 @@ fn test_format() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_Point: () = {
-                impl ::std::fmt::Debug for Point {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+                impl ::core::fmt::Debug for Point {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Point { x: ref __binding_0, y: ref __binding_1, } => {
                                 let mut s = f.debug_struct("Point");
@@ -194,20 +194,20 @@ fn test_with() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_Point: () = {
-                impl ::std::fmt::Debug for Point {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+                impl ::core::fmt::Debug for Point {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Point { x: ref __binding_0, y: ref __binding_1, } => {
                                 let mut s = f.debug_struct("Point");
                                 s.field("x", &{
                                     struct DebugWith<'a, T: 'a> {
                                         data: &'a T,
-                                        fmt: fn(&T, &mut ::std::fmt::Formatter) -> ::std::fmt::Result,
+                                        fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
                                     }
 
-                                    impl<'a, T: 'a> ::std::fmt::Debug for DebugWith<'a, T> {
-                                        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                                    impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
+                                        fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                                             (self.fmt)(self.data, f)
                                         }
                                     }
@@ -244,9 +244,9 @@ fn test_skip() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_Point: () = {
-                impl ::std::fmt::Debug for Point {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+                impl ::core::fmt::Debug for Point {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Point { x: ref __binding_0, z: ref __binding_2, .. } => {
                                 let mut s = f.debug_struct("Point");
@@ -276,9 +276,9 @@ fn test_enum() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_Foo: () = {
-                impl ::std::fmt::Debug for Foo {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            const _DERIVE_core_fmt_Debug_FOR_Foo: () = {
+                impl ::core::fmt::Debug for Foo {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Foo::Bar(ref __binding_0, ref __binding_1,) => {
                                 let mut s = f.debug_tuple("Bar");
@@ -332,12 +332,12 @@ fn test_bounds_on_skipped() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_WantDebug: () = {
-                impl<T> ::std::fmt::Debug for WantDebug<T>
+            const _DERIVE_core_fmt_Debug_FOR_WantDebug: () = {
+                impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
-                        TemplatedType<T>: ::std::fmt::Debug
+                        TemplatedType<T>: ::core::fmt::Debug
                 {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             WantDebug { foo: ref __binding_0, .. } => {
                                 let mut s = f.debug_struct("WantDebug");
@@ -376,13 +376,13 @@ fn test_bounds_on_fields_only() {
 
         expands to {
             #[allow(non_upper_case_globals)]
-            const _DERIVE_std_fmt_Debug_FOR_WantDebug: () = {
-                impl<T> ::std::fmt::Debug for WantDebug<T>
+            const _DERIVE_core_fmt_Debug_FOR_WantDebug: () = {
+                impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
-                        TemplatedType<T>: ::std::fmt::Debug,
-                        T: ::std::fmt::Debug
+                        TemplatedType<T>: ::core::fmt::Debug,
+                        T: ::core::fmt::Debug
                 {
-                    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             WantDebug { foo: ref __binding_0, bar: ref __binding_1, needs_debug: ref __binding_2, } => {
                                 let mut s = f.debug_struct("WantDebug");
