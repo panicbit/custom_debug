@@ -15,7 +15,7 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
             .attrs
             .iter()
             .filter(move |attr| attr.path == debug_attr)
-            .flat_map(|attr| attr.interpret_meta())
+            .flat_map(|attr| attr.parse_meta())
             .flat_map(|meta| match meta {
                 Meta::List(list) => list.nested,
                 _ => panic!("Invalid debug attribute"),
@@ -27,8 +27,8 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
     let skip_ident: Ident = parse_str("skip").unwrap();
     s.filter(|b| {
         for meta in get_metas(b) {
-            if let NestedMeta::Meta(Meta::Word(ref ident)) = meta {
-                if ident == &skip_ident {
+            if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
+                if path.get_ident().map(|i| i == &skip_ident).unwrap_or(false) {
                     return false;
                 }
             }
@@ -51,9 +51,11 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                 match meta {
                     NestedMeta::Meta(Meta::NameValue(nv)) => {
                         let value = nv.lit;
-                        format = Some(match &*nv.ident.to_string() {
-                            "format" => quote! { &format_args!(#value, #b) },
-                            "with" => match value {
+                        let ident = nv.path.get_ident().map(|i| i.to_string());
+                        let ident_ref = ident.as_ref().map(|s| -> &str { &s });
+                        format = Some(match ident_ref {
+                            Some("format") => quote! { &format_args!(#value, #b) },
+                            Some("with") => match value {
                                 Lit::Str(fun) => {
                                     let fun = fun.parse::<Path>().unwrap();
                                     quote! {
@@ -78,7 +80,7 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                                 },
                                 _ => panic!("Invalid 'with' value"),
                             },
-                            name => panic!("Unknown key '{}'", name),
+                            _ => panic!("Unknown key '{}'", quote!(nv.path).to_string()),
                         })
                     },
                     _ => panic!("Invalid debug attribute"),
