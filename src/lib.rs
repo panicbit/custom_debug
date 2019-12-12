@@ -1,11 +1,9 @@
-extern crate proc_macro2;
-extern crate syn;
-#[macro_use]
-extern crate synstructure;
-
 use proc_macro2::TokenStream;
 use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path};
-use synstructure::{AddBounds, BindingInfo, Structure};
+use synstructure::{decl_derive, quote, AddBounds, BindingInfo, Structure};
+
+#[cfg(test)]
+use synstructure::test_derive;
 
 decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
