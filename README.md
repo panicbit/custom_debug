@@ -1,4 +1,4 @@
-# custom_debug_derive
+# custom_debug
 
 Derive `Debug` with a custom format per field.
 
@@ -7,7 +7,7 @@ Derive `Debug` with a custom format per field.
 Here is a showcase of all possible field attributes:
 
 ```rust
-    #[macro_use] extern crate custom_debug_derive;
+    use custom_debug::CustomDebug;
     use std::fmt;
 
     #[derive(CustomDebug)]

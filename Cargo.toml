@@ -1,0 +1,13 @@
+[package]
+name = "custom_debug"
+version = "0.2.0"
+authors = ["panicbit <panicbit.dev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+custom_debug_derive = { version = "0.2.0", path = "custom_debug_derive" }
+
+[workspace]
+members = [
+    "custom_debug_derive",
+]
