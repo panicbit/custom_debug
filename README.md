@@ -13,11 +13,11 @@ Here is a showcase of all possible field attributes:
     #[derive(CustomDebug)]
     struct Foo {
         #[debug(format = "{} things")]
-        x: f32,
+        x: i32,
         #[debug(skip)]
-        y: f32,
+        y: i32,
         #[debug(with = "hex_fmt")]
-        z: f32,
+        z: i32,
     }
 
     fn hex_fmt<T: fmt::Debug>(n: &T, f: &mut fmt::Formatter) -> fmt::Result {
