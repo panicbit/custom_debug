@@ -1,5 +1,13 @@
 use custom_debug::{CustomDebug, hexbuf, hexbuf_str};
 
+#[derive(CustomDebug)]
+struct Foo {
+    #[debug(with = "hexbuf")]
+    buf1: &'static [u8],
+    #[debug(with = "hexbuf_str")]
+    buf2: Vec<u8>,
+}
+
 fn main() {
     let foo = Foo {
         buf1: b"\0test1\0test2\0",
@@ -7,12 +15,4 @@ fn main() {
     };
 
     println!("{:#?}", foo);
-}
-
-#[derive(CustomDebug)]
-struct Foo {
-    #[debug(with = "hexbuf")]
-    buf1: &'static [u8],
-    #[debug(with = "hexbuf_str")]
-    buf2: Vec<u8>,
 }
