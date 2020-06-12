@@ -7,10 +7,10 @@ Derive `Debug` with a custom format per field.
 Here is a showcase of all possible field attributes:
 
 ```rust
-    use custom_debug::CustomDebug;
+    use custom_debug::Debug;
     use std::fmt;
 
-    #[derive(CustomDebug)]
+    #[deriveDebug)]
     struct Foo {
         #[debug(format = "{} things")]
         x: i32,

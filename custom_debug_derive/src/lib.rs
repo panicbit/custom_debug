@@ -5,7 +5,7 @@ use synstructure::{decl_derive, quote, AddBounds, BindingInfo, Structure};
 #[cfg(test)]
 mod tests;
 
-decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
+decl_derive!([Debug, attributes(debug)] => custom_debug_derive);
 
 fn custom_debug_derive(mut s: Structure) -> TokenStream {
     fn get_metas<'a>(b: &BindingInfo<'a>) -> impl Iterator<Item = NestedMeta> + 'a {

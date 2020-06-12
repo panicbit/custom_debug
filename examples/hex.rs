@@ -1,7 +1,7 @@
-use custom_debug::CustomDebug;
+use custom_debug::Debug;
 use std::fmt;
 
-#[derive(CustomDebug)]
+#[derive(Debug)]
 struct Foo {
     #[debug(format = "{} things")]
     x: i32,

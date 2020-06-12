@@ -1,6 +1,6 @@
-use custom_debug::{CustomDebug, hexbuf, hexbuf_str};
+use custom_debug::{Debug, hexbuf, hexbuf_str};
 
-#[derive(CustomDebug)]
+#[derive(Debug)]
 struct Foo {
     #[debug(with = "hexbuf")]
     buf1: &'static [u8],
