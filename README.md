@@ -10,7 +10,7 @@ Here is a showcase of all possible field attributes:
     use custom_debug::Debug;
     use std::fmt;
 
-    #[deriveDebug)]
+    #[derive(Debug)]
     struct Foo {
         #[debug(format = "{} things")]
         x: i32,
