@@ -20,7 +20,7 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                 Meta::List(list) => list.nested,
                 _ => panic!("Invalid debug attribute"),
             })
-    };
+    }
 
     s.add_bounds(AddBounds::Fields);
 
@@ -52,7 +52,7 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                     NestedMeta::Meta(Meta::NameValue(nv)) => {
                         let value = nv.lit;
                         let ident = nv.path.get_ident().map(|i| i.to_string());
-                        let ident_ref = ident.as_ref().map(|s| -> &str { &s });
+                        let ident_ref = ident.as_ref().map(|s| -> &str { s });
                         format = Some(match ident_ref {
                             Some("format") => quote! { &format_args!(#value, #b) },
                             Some("with") => match value {
@@ -80,7 +80,7 @@ fn custom_debug_derive(mut s: Structure) -> TokenStream {
                                 },
                                 _ => panic!("Invalid 'with' value"),
                             },
-                            _ => panic!("Unknown key '{}'", quote!(nv.path).to_string()),
+                            _ => panic!("Unknown key '{}'", quote!(nv.path)),
                         })
                     },
                     _ => panic!("Invalid debug attribute"),

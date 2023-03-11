@@ -1,4 +1,4 @@
-use custom_debug::{Debug, hexbuf, hexbuf_str};
+use custom_debug::{hexbuf, hexbuf_str, Debug};
 
 #[derive(Debug)]
 struct Foo {
