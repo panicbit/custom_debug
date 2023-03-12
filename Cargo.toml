@@ -6,7 +6,7 @@ description = "Derive Debug with a custom format per field"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/panicbit/custom_debug"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 custom_debug_derive = { version = "0.5.1", path = "custom_debug_derive" }
