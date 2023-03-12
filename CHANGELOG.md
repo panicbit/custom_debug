@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Better error messages
 - no_std support
+- `CustomDebug` alias for `Debug`
 
 ### Changed
 - BREAKING: upgrade from edition 2018 to edition 2021
