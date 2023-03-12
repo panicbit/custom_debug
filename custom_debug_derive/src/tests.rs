@@ -1,3 +1,4 @@
+#![allow(clippy::match_single_binding)]
 use super::custom_debug_derive;
 use synstructure::test_derive;
 
@@ -13,6 +14,7 @@ fn test_default_struct() {
 
         expands to {
             #[allow(non_upper_case_globals)]
+            #[allow(clippy::match_single_binding)]
             const _DERIVE_core_fmt_Debug_FOR_Point: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
@@ -192,9 +194,11 @@ fn test_bounds_on_skipped() {
     use std::{fmt::*, marker::PhantomData};
 
     struct NoDebug;
+
     struct TemplatedType<T> {
         _phantom: PhantomData<T>,
-    };
+    }
+
     impl<T> Debug for TemplatedType<T>
     where
         T: Debug,
@@ -244,9 +248,10 @@ fn test_bounds_on_fields_only() {
     use std::marker::PhantomData;
 
     struct NoDebug;
+
     struct TemplatedType<T> {
         _phantom: PhantomData<T>,
-    };
+    }
 
     test_derive! {
         custom_debug_derive {

@@ -1,3 +1,4 @@
+#![allow(clippy::disallowed_names)]
 use custom_debug::Debug;
 use std::fmt;
 
