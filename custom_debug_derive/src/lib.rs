@@ -1,3 +1,4 @@
+use crate::filter_ext::FilterExt;
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -5,45 +6,16 @@ use syn::spanned::Spanned;
 use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
+mod filter_ext;
 #[cfg(test)]
 mod tests;
 
 decl_derive!([Debug, attributes(debug)] => custom_debug_derive);
 
 fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
+    filter_out_skipped_fields(&mut structure)?;
+
     structure.add_bounds(AddBounds::Fields);
-
-    let skip_ident: Ident = parse_str("skip").unwrap();
-
-    let mut filter_err = None;
-
-    structure.filter(|binding| {
-        for meta in get_metas(binding) {
-            let meta = match meta {
-                Ok(meta) => meta,
-                Err(err) => {
-                    filter_err = Some(err);
-                    return false;
-                }
-            };
-
-            if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
-                if path
-                    .get_ident()
-                    .map(|ident| ident == &skip_ident)
-                    .unwrap_or(false)
-                {
-                    return false;
-                }
-            }
-        }
-
-        true
-    });
-
-    if let Some(filter_err) = filter_err {
-        return Err(filter_err);
-    }
 
     let match_arms =
         structure.each_variant(|variant| generate_match_arm_body(variant).into_stream());
@@ -57,6 +29,30 @@ fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
             }
         }
     }))
+}
+
+fn filter_out_skipped_fields(structure: &mut Structure) -> Result<()> {
+    let skip_ident: Ident = parse_str("skip").unwrap();
+
+    structure.try_filter(|binding| {
+        for meta in get_metas(binding) {
+            let meta = meta?;
+
+            if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
+                if path
+                    .get_ident()
+                    .map(|ident| ident == &skip_ident)
+                    .unwrap_or(false)
+                {
+                    return Ok(false);
+                }
+            }
+        }
+
+        Ok(true)
+    })?;
+
+    Ok(())
 }
 
 fn generate_match_arm_body(variant: &VariantInfo) -> Result<TokenStream> {
