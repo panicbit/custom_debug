@@ -1,5 +1,3 @@
-use crate::filter_ext::FilterExt;
-use crate::macros::{bail, error};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -7,8 +5,13 @@ use syn::spanned::Spanned;
 use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
+use crate::filter_ext::FilterExt;
+use crate::macros::{bail, error};
+use crate::result_into_stream_ext::ResultIntoStreamExt;
+
 mod filter_ext;
 mod macros;
+mod result_into_stream_ext;
 #[cfg(test)]
 mod tests;
 
@@ -172,17 +175,4 @@ fn get_metas<'a>(binding: &BindingInfo<'a>) -> impl Iterator<Item = Result<Neste
             }
         })
         .flatten_ok()
-}
-
-trait ResultIntoStreamExt {
-    fn into_stream(self) -> TokenStream;
-}
-
-impl ResultIntoStreamExt for syn::Result<TokenStream> {
-    fn into_stream(self) -> TokenStream {
-        match self {
-            Ok(stream) => stream,
-            Err(err) => err.into_compile_error(),
-        }
-    }
 }
