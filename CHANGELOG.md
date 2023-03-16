@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - BREAKING: upgrade from edition 2018 to edition 2021
+- BREAKING: internal use of Rust 1.65.0 features (GATs)
 
 ## [0.5.1]
 
