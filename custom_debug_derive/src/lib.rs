@@ -40,7 +40,7 @@ fn filter_out_skipped_fields(structure: &mut Structure) -> Result<()> {
     let skip_ident: Ident = parse_str("skip").unwrap();
 
     structure.try_filter(|binding| {
-        for meta in get_metas(binding) {
+        for meta in get_custom_debug_metas(binding) {
             let meta = meta?;
 
             if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
@@ -84,7 +84,7 @@ fn generate_match_arm_body(variant: &VariantInfo) -> Result<TokenStream> {
 fn generate_debug_builder_call(binding: &BindingInfo) -> Result<TokenStream> {
     let mut format = None;
 
-    for meta in get_metas(binding) {
+    for meta in get_custom_debug_metas(binding) {
         let meta = meta?;
 
         match meta {
@@ -158,7 +158,9 @@ fn generate_name_value_builder_call(
     }
 }
 
-fn get_metas<'a>(binding: &BindingInfo<'a>) -> impl Iterator<Item = Result<NestedMeta>> + 'a {
+fn get_custom_debug_metas<'a>(
+    binding: &BindingInfo<'a>,
+) -> impl Iterator<Item = Result<NestedMeta>> + 'a {
     let debug_attr = parse_str::<Path>("debug").unwrap();
 
     binding
