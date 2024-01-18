@@ -5,7 +5,7 @@ use syn::spanned::Spanned;
 use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
-use crate::filter_ext::FilterExt;
+use crate::filter_ext::RetainExt;
 use crate::macros::{bail, error};
 use crate::result_into_stream_ext::ResultIntoStreamExt;
 
@@ -39,7 +39,7 @@ fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
 fn filter_out_skipped_fields(structure: &mut Structure) -> Result<()> {
     let skip_ident: Ident = parse_str("skip").unwrap();
 
-    structure.try_filter(|binding| {
+    structure.try_retain(|binding| {
         for meta in get_custom_debug_metas(binding) {
             let meta = meta?;
 
