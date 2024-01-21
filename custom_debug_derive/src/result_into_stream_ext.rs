@@ -1,7 +1,3 @@
-use syn::Result;
-
-use syn;
-
 use proc_macro2::TokenStream;
 
 pub(crate) trait ResultIntoStreamExt {

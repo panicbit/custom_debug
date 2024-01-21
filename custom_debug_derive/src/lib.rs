@@ -1,19 +1,15 @@
 use darling::FromMeta;
-use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{parse_str, Fields, Ident, Lit, Meta, Path, Result};
+use syn::{Fields, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
 use crate::field_attributes::{DebugFormat, FieldAttributes};
 use crate::filter_ext::RetainExt;
-use crate::macros::{bail, error};
 use crate::result_into_stream_ext::ResultIntoStreamExt;
 
 mod field_attributes;
 mod filter_ext;
-mod macros;
 mod result_into_stream_ext;
 #[cfg(test)]
 mod tests;
