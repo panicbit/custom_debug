@@ -1,16 +1,15 @@
-use itertools::Itertools;
+use darling::FromMeta;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{parse_str, Fields, Ident, Lit, Meta, NestedMeta, Path, Result};
+use syn::{Fields, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
-use crate::filter_ext::FilterExt;
-use crate::macros::{bail, error};
+use crate::field_attributes::{DebugFormat, FieldAttributes};
+use crate::filter_ext::RetainExt;
 use crate::result_into_stream_ext::ResultIntoStreamExt;
 
+mod field_attributes;
 mod filter_ext;
-mod macros;
 mod result_into_stream_ext;
 #[cfg(test)]
 mod tests;
@@ -37,24 +36,10 @@ fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
 }
 
 fn filter_out_skipped_fields(structure: &mut Structure) -> Result<()> {
-    let skip_ident: Ident = parse_str("skip").unwrap();
+    structure.try_retain(|binding| {
+        let field_attributes = parse_field_attributes(binding)?;
 
-    structure.try_filter(|binding| {
-        for meta in get_custom_debug_metas(binding) {
-            let meta = meta?;
-
-            if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
-                if path
-                    .get_ident()
-                    .map(|ident| ident == &skip_ident)
-                    .unwrap_or(false)
-                {
-                    return Ok(false);
-                }
-            }
-        }
-
-        Ok(true)
+        Ok(!field_attributes.skip)
     })?;
 
     Ok(())
@@ -82,20 +67,8 @@ fn generate_match_arm_body(variant: &VariantInfo) -> Result<TokenStream> {
 }
 
 fn generate_debug_builder_call(binding: &BindingInfo) -> Result<TokenStream> {
-    let mut format = None;
-
-    for meta in get_custom_debug_metas(binding) {
-        let meta = meta?;
-
-        match meta {
-            NestedMeta::Meta(Meta::NameValue(nv)) => {
-                format = Some(generate_name_value_builder_call(binding, nv)?)
-            }
-            _ => bail!(meta.span(), "Unsupported attribute"),
-        }
-    }
-
-    let format = format.unwrap_or_else(|| quote! { #binding });
+    let field_attributes = parse_field_attributes(binding)?;
+    let format = generate_debug_impl(binding, &field_attributes.debug_format);
 
     let debug_builder_call =
         if let Some(ref name) = binding.ast().ident.as_ref().map(<_>::to_string) {
@@ -111,70 +84,44 @@ fn generate_debug_builder_call(binding: &BindingInfo) -> Result<TokenStream> {
     Ok(debug_builder_call)
 }
 
-fn generate_name_value_builder_call(
-    binding: &BindingInfo,
-    nv: syn::MetaNameValue,
-) -> Result<TokenStream> {
-    let key_span = nv.path.span();
-    let value_span = nv.lit.span();
-    let value = nv.lit;
-    let ident = nv
-        .path
-        .get_ident()
-        .map(Ident::to_string)
-        .ok_or_else(|| error!(key_span, "Unsupported attribute"))?;
+fn generate_debug_impl(binding: &BindingInfo, debug_format: &DebugFormat) -> TokenStream {
+    match debug_format {
+        DebugFormat::Default => quote! { #binding },
+        DebugFormat::Format(format) => quote! { &format_args!(#format, #binding) },
+        DebugFormat::With(with) => quote! {
+            {
+                struct DebugWith<'a, T: 'a> {
+                    data: &'a T,
+                    fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
+                }
 
-    match &*ident {
-        "format" => Ok(quote! { &format_args!(#value, #binding) }),
-        "with" => match value {
-            Lit::Str(fun) => {
-                let fun = fun
-                    .parse::<Path>()
-                    .map_err(|_| error!(fun.span(), "Invalid path to function"))?;
-
-                Ok(quote! {
-                    {
-                        struct DebugWith<'a, T: 'a> {
-                            data: &'a T,
-                            fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
-                        }
-
-                        impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
-                            fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                                (self.fmt)(self.data, fmt)
-                            }
-                        }
-
-                        &DebugWith {
-                            data: #binding,
-                            fmt: #fun,
-                        }
+                impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
+                    fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                        (self.fmt)(self.data, fmt)
                     }
-                })
+                }
+
+                &DebugWith {
+                    data: #binding,
+                    fmt: #with,
+                }
             }
-            _ => bail!(value_span, "Invalid `with` value"),
         },
-        _ => bail!(key_span, "Unsupported attribute"),
     }
 }
 
-fn get_custom_debug_metas<'a>(
-    binding: &BindingInfo<'a>,
-) -> impl Iterator<Item = Result<NestedMeta>> + 'a {
-    let debug_attr = parse_str::<Path>("debug").unwrap();
+fn parse_field_attributes(binding: &BindingInfo<'_>) -> Result<FieldAttributes> {
+    let mut combined_field_attributes = FieldAttributes::default();
 
-    binding
-        .ast()
-        .attrs
-        .iter()
-        .filter(move |attr| attr.path == debug_attr)
-        .map(|attr| {
-            let meta = attr.parse_meta()?;
+    for attr in &binding.ast().attrs {
+        if !attr.path().is_ident("debug") {
+            continue;
+        }
 
-            match meta {
-                Meta::List(list) => Ok(list.nested),
-                _ => bail!(meta.span(), "Unsupported attribute style, use `debug(…)`"),
-            }
-        })
-        .flatten_ok()
+        let field_attributes = FieldAttributes::from_meta(&attr.meta)?;
+
+        combined_field_attributes = combined_field_attributes.try_combine(field_attributes)?;
+    }
+
+    Ok(combined_field_attributes)
 }
