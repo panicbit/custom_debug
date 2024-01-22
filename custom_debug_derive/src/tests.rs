@@ -149,6 +149,45 @@ fn test_skip() {
 }
 
 #[test]
+fn test_conditional_skip() {
+    test_derive! {
+        custom_debug_derive {
+            struct Point {
+                x: f32,
+                #[debug(skip_if = Option::is_none)]
+                y: Option<f32>,
+                z: f32,
+            }
+        }
+
+        expands to {
+            #[allow(non_upper_case_globals)]
+            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+                impl ::core::fmt::Debug for Point {
+                    fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                        match self {
+                            Point { x: ref __binding_0, y: ref __binding_1, z: ref __binding_2, } => {
+                                let mut debug_builder = fmt.debug_struct("Point");
+                                debug_builder.field("x", __binding_0);
+
+                                if (Option::is_none(__binding_1)) {
+                                    debug_builder.field("y", __binding_1);
+                                }
+
+                                debug_builder.field("z", __binding_2);
+                                debug_builder.finish()
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        no_build
+    }
+}
+
+#[test]
 fn test_enum() {
     test_derive! {
         custom_debug_derive {
