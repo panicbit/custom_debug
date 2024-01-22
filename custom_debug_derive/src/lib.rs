@@ -4,7 +4,7 @@ use quote::quote;
 use syn::{Fields, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
-use crate::field_attributes::{DebugFormat, FieldAttributes};
+use crate::field_attributes::{DebugFormat, FieldAttributes, SkipMode};
 use crate::filter_ext::RetainExt;
 use crate::result_into_stream_ext::ResultIntoStreamExt;
 
@@ -39,7 +39,7 @@ fn filter_out_skipped_fields(structure: &mut Structure) -> Result<()> {
     structure.try_retain(|binding| {
         let field_attributes = parse_field_attributes(binding)?;
 
-        Ok(!field_attributes.skip)
+        Ok(field_attributes.skip_mode != SkipMode::Always)
     })?;
 
     Ok(())
@@ -51,11 +51,27 @@ fn generate_match_arm_body(variant: &VariantInfo) -> Result<TokenStream> {
         Fields::Named(_) | Fields::Unit => quote! { debug_struct },
         Fields::Unnamed(_) => quote! { debug_tuple },
     };
-    let debug_builder_calls = variant
-        .bindings()
-        .iter()
-        .map(generate_debug_builder_call)
-        .collect::<Result<Vec<_>>>()?;
+    let mut debug_builder_calls = Vec::new();
+
+    for binding in variant.bindings() {
+        let field_attributes = parse_field_attributes(binding)?;
+
+        let debug_builder_call = match &field_attributes.skip_mode {
+            SkipMode::Default => generate_debug_builder_call(binding, &field_attributes)?,
+            SkipMode::Condition(condition) => {
+                let debug_builder_call = generate_debug_builder_call(binding, &field_attributes)?;
+
+                quote! {
+                    if (!#condition(#binding)) {
+                        #debug_builder_call
+                    }
+                }
+            }
+            SkipMode::Always => quote! {},
+        };
+
+        debug_builder_calls.push(debug_builder_call);
+    }
 
     Ok(quote! {
         let mut debug_builder = fmt.#debug_builder(#name);
@@ -66,8 +82,10 @@ fn generate_match_arm_body(variant: &VariantInfo) -> Result<TokenStream> {
     })
 }
 
-fn generate_debug_builder_call(binding: &BindingInfo) -> Result<TokenStream> {
-    let field_attributes = parse_field_attributes(binding)?;
+fn generate_debug_builder_call(
+    binding: &BindingInfo,
+    field_attributes: &FieldAttributes,
+) -> Result<TokenStream> {
     let format = generate_debug_impl(binding, &field_attributes.debug_format);
 
     let debug_builder_call =

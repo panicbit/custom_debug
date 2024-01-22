@@ -6,14 +6,22 @@ use syn::ExprPath;
 
 #[derive(Default)]
 pub struct FieldAttributes {
-    pub skip: bool,
+    pub skip_mode: SkipMode,
     pub debug_format: DebugFormat,
 }
 
 impl FieldAttributes {
     fn new(internal: InternalFieldAttributes) -> darling::Result<Self> {
-        let skip = internal.skip.is_present();
+        let mut skip_mode = SkipMode::Default;
         let debug_format = OnceCell::new();
+
+        if internal.skip.is_present() {
+            skip_mode = skip_mode.try_combine(SkipMode::Always)?;
+        }
+
+        if let Some(skip_if) = internal.skip_if {
+            skip_mode = skip_mode.try_combine(SkipMode::Condition(skip_if))?;
+        }
 
         if let Some(format) = internal.format {
             debug_format
@@ -29,14 +37,20 @@ impl FieldAttributes {
 
         let debug_format = debug_format.into_inner().unwrap_or(DebugFormat::Default);
 
-        Ok(Self { skip, debug_format })
+        Ok(Self {
+            skip_mode,
+            debug_format,
+        })
     }
 
     pub fn try_combine(self, other: Self) -> darling::Result<Self> {
-        let skip = self.skip || other.skip;
+        let skip_mode = self.skip_mode.try_combine(other.skip_mode)?;
         let debug_format = self.debug_format.try_combine(other.debug_format)?;
 
-        Ok(Self { skip, debug_format })
+        Ok(Self {
+            skip_mode,
+            debug_format,
+        })
     }
 }
 
@@ -80,11 +94,34 @@ impl DebugFormat {
     }
 }
 
+#[derive(Default, PartialEq, Eq)]
+pub enum SkipMode {
+    #[default]
+    Default,
+    Condition(ExprPath),
+    Always,
+}
+
+impl SkipMode {
+    fn try_combine(self, other: Self) -> darling::Result<Self> {
+        match (&self, &other) {
+            (SkipMode::Default, _) => Ok(other),
+            (_, SkipMode::Default) => Ok(self),
+            _ => Err(conflicting_skip_options_error()),
+        }
+    }
+}
+
 #[derive(FromMeta)]
 struct InternalFieldAttributes {
     skip: Flag,
+    skip_if: Option<ExprPath>,
     format: Option<String>,
     with: Option<ExprPath>,
+}
+
+fn conflicting_skip_options_error() -> darling::Error {
+    darling::Error::custom("Conflicting skip options")
 }
 
 fn conflicting_format_options_error() -> darling::Error {
