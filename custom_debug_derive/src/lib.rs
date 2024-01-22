@@ -5,12 +5,12 @@ use syn::{Fields, Result};
 use synstructure::{decl_derive, AddBounds, BindingInfo, Structure, VariantInfo};
 
 use crate::field_attributes::{DebugFormat, FieldAttributes, SkipMode};
-use crate::filter_ext::RetainExt;
 use crate::result_into_stream_ext::ResultIntoStreamExt;
+use crate::retain_ext::RetainExt;
 
 mod field_attributes;
-mod filter_ext;
 mod result_into_stream_ext;
+mod retain_ext;
 #[cfg(test)]
 mod tests;
 
