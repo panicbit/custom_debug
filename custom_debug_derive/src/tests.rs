@@ -170,7 +170,7 @@ fn test_conditional_skip() {
                                 let mut debug_builder = fmt.debug_struct("Point");
                                 debug_builder.field("x", __binding_0);
 
-                                if (Option::is_none(__binding_1)) {
+                                if (!Option::is_none(__binding_1)) {
                                     debug_builder.field("y", __binding_1);
                                 }
 
