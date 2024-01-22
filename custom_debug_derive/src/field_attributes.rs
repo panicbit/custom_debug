@@ -1,5 +1,3 @@
-use std::cell::OnceCell;
-
 use darling::util::Flag;
 use darling::FromMeta;
 use syn::ExprPath;
@@ -13,7 +11,7 @@ pub struct FieldAttributes {
 impl FieldAttributes {
     fn new(internal: InternalFieldAttributes) -> darling::Result<Self> {
         let mut skip_mode = SkipMode::Default;
-        let debug_format = OnceCell::new();
+        let mut debug_format = DebugFormat::Default;
 
         if internal.skip.is_present() {
             skip_mode = skip_mode.try_combine(SkipMode::Always)?;
@@ -24,18 +22,12 @@ impl FieldAttributes {
         }
 
         if let Some(format) = internal.format {
-            debug_format
-                .set(DebugFormat::Format(format))
-                .map_err(|_| conflicting_format_options_error())?;
+            debug_format = debug_format.try_combine(DebugFormat::Format(format))?;
         }
 
         if let Some(with) = internal.with {
-            debug_format
-                .set(DebugFormat::With(with))
-                .map_err(|_| conflicting_format_options_error())?;
+            debug_format = debug_format.try_combine(DebugFormat::With(with))?;
         }
-
-        let debug_format = debug_format.into_inner().unwrap_or(DebugFormat::Default);
 
         Ok(Self {
             skip_mode,
