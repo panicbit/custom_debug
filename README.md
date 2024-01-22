@@ -16,8 +16,10 @@ Here is a showcase of all possible field attributes:
         x: i32,
         #[debug(skip)]
         y: i32,
-        #[debug(with = "hex_fmt")]
+        #[debug(with = hex_fmt)]
         z: i32,
+        #[debug(skip_if = Option::is_none)]
+        label: Option<String>,
     }
 
     fn hex_fmt<T: fmt::Debug>(n: &T, f: &mut fmt::Formatter) -> fmt::Result {
