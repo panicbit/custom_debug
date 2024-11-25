@@ -12,7 +12,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-synstructure = "0.13.0"
+synstructure = "0.13.1"
 proc-macro2 = "1.0.76"
 syn = "2.0.48"
 quote = "1.0.35"
