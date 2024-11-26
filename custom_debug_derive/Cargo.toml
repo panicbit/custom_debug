@@ -17,6 +17,3 @@ proc-macro2 = "1.0.76"
 syn = "2.0.48"
 quote = "1.0.35"
 darling = "0.20.3"
-
-[dev-dependencies]
-itertools = "0.12.0"
