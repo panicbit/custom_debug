@@ -13,8 +13,7 @@ fn test_default_struct() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -44,8 +43,7 @@ fn test_format() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -77,8 +75,7 @@ fn test_with() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -127,8 +124,7 @@ fn test_skip() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -161,8 +157,7 @@ fn test_conditional_skip() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Point: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -198,8 +193,7 @@ fn test_enum() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_Foo: () = {
+            const _: () = {
                 impl ::core::fmt::Debug for Foo {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -256,8 +250,7 @@ fn test_bounds_on_skipped() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_WantDebug: () = {
+            const _: () = {
                 impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
                         TemplatedType<T>: ::core::fmt::Debug
@@ -301,8 +294,7 @@ fn test_bounds_on_fields_only() {
         }
 
         expands to {
-            #[allow(non_upper_case_globals)]
-            const _DERIVE_core_fmt_Debug_FOR_WantDebug: () = {
+            const _: () = {
                 impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
                         TemplatedType<T>: ::core::fmt::Debug,
