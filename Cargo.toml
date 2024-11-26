@@ -1,6 +1,6 @@
 [package]
 name = "custom_debug"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["panicbit <panicbit.dev@gmail.com>"]
 description = "Derive Debug with a custom format per field"
 license = "Apache-2.0 OR MIT"
@@ -9,7 +9,7 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-custom_debug_derive = { version = "0.6.1", path = "custom_debug_derive" }
+custom_debug_derive = { version = "0.6.2", path = "custom_debug_derive" }
 
 [workspace]
 members = ["custom_debug_derive"]
