@@ -1,0 +1,67 @@
+---
+name: CI checks
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Source ref used to build bindings. Uses `github.ref`` by default.
+        required: false
+      sha:
+        description: Source SHA used to build bindings. Uses `github.sha`` by default.
+        required: false
+
+  push:
+    branches:
+    - main
+    paths:
+    - Cargo.toml
+    - Cargo.lock
+    - src/**
+    - tests/**
+    - .github/workflows/ci.yaml
+  pull_request:
+    paths:
+    - Cargo.toml
+    - Cargo.lock
+    - src/**
+    - tests/**
+    - .github/workflows/ci.yaml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  COLOR: yes
+  FORCE_COLOR: 1
+  CARGO_TERM_COLOR: always
+  CARGO_TERM_PROGRESS_WHEN: never
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  CARGO_NET_RETRY: 10
+  BINSTALL_DISABLE_TELEMETRY: true
+
+permissions: {}
+jobs:
+  ci-build:
+    name: Build and test
+
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Rust version
+      run: |
+        rustc --version
+        cargo --version
+
+    - name: Checkout repo
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.inputs.source || github.ref || github.event.ref }}
+
+    - name: Run tests
+      run: |
+        cargo test --all
