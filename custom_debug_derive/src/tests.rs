@@ -14,6 +14,7 @@ fn test_default_struct() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -44,6 +45,7 @@ fn test_format() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -76,23 +78,27 @@ fn test_with() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
                             Point { x: ref __binding_0, y: ref __binding_1, } => {
                                 let mut debug_builder = fmt.debug_struct("Point");
                                 debug_builder.field("x", {
+                                    #[automatically_derived]
                                     struct DebugWith<'a, T: 'a> {
                                         data: &'a T,
                                         fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
                                     }
 
+                                    #[automatically_derived]
                                     impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
                                         fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                                             (self.fmt)(self.data, fmt)
                                         }
                                     }
 
+                                    #[automatically_derived]
                                     &DebugWith {
                                         data: __binding_0,
                                         fmt: my_fmt,
@@ -125,6 +131,7 @@ fn test_skip() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -158,6 +165,7 @@ fn test_conditional_skip() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Point {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -194,6 +202,7 @@ fn test_enum() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl ::core::fmt::Debug for Foo {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         match self {
@@ -251,6 +260,7 @@ fn test_bounds_on_skipped() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
                         TemplatedType<T>: ::core::fmt::Debug
@@ -295,6 +305,7 @@ fn test_bounds_on_fields_only() {
 
         expands to {
             const _: () = {
+                #[automatically_derived]
                 impl<T> ::core::fmt::Debug for WantDebug<T>
                     where
                         TemplatedType<T>: ::core::fmt::Debug,
