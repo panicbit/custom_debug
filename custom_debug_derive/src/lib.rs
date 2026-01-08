@@ -25,6 +25,7 @@ fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
         structure.each_variant(|variant| generate_match_arm_body(variant).into_stream());
 
     Ok(structure.gen_impl(quote! {
+        #[automatically_derived]
         gen impl ::core::fmt::Debug for @Self {
             fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
@@ -108,17 +109,20 @@ fn generate_debug_impl(binding: &BindingInfo, debug_format: &DebugFormat) -> Tok
         DebugFormat::Format(format) => quote! { &format_args!(#format, #binding) },
         DebugFormat::With(with) => quote! {
             {
+                #[automatically_derived]
                 struct DebugWith<'a, T: 'a> {
                     data: &'a T,
                     fmt: fn(&T, &mut ::core::fmt::Formatter) -> ::core::fmt::Result,
                 }
 
+                #[automatically_derived]
                 impl<'a, T: 'a> ::core::fmt::Debug for DebugWith<'a, T> {
                     fn fmt(&self, fmt: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         (self.fmt)(self.data, fmt)
                     }
                 }
 
+                #[automatically_derived]
                 &DebugWith {
                     data: #binding,
                     fmt: #with,
