@@ -14,7 +14,7 @@ mod retain_ext;
 #[cfg(test)]
 mod tests;
 
-decl_derive!([Debug, attributes(debug)] => custom_debug_derive);
+decl_derive!([CustomDebug, attributes(debug)] => custom_debug_derive);
 
 fn custom_debug_derive(mut structure: Structure) -> Result<TokenStream> {
     filter_out_skipped_fields(&mut structure)?;

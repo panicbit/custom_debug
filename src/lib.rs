@@ -2,7 +2,7 @@
 use core::fmt;
 
 /// Alias of [Debug]
-pub use custom_debug_derive::Debug as CustomDebug;
+pub use custom_debug_derive::CustomDebug as Debug;
 pub use custom_debug_derive::*;
 
 /// Formats a buffer as hex using \xNN notation.
